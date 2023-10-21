@@ -20,8 +20,7 @@
         (ecase event
           (:value value)
           (:begin-array (parse-array parser))
-          (:begin-object (parse-object parser))
-          (otherwise (error "Unexpected event: ~A" event))))
+          (:begin-object (parse-object parser))))
 
 (defun parse-array (parser)
   (declare (type jzon:parser parser))
