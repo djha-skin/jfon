@@ -28,17 +28,17 @@
         do (setf (values event value) (jzon:parse-next parser))
         while (not (eq event :end-array))
         do
-        (fset:adjoinf result (parse-value parser event value))
+        (fset:push-last result (parse-value parser event value))
         finally
         (return result)))
 
 (defun parse-object (parser)
   ;(declare (type jzon:parser parser))
-  (loop with result = (fset:empty-seq)
+  (loop with result = (fset:empty-map)
         and event
         and value
         do (setf (values event value) (jzon:parse-next parser))
-        while (not (eq event :end-array))
+        while (not (eq event :end-object))
         do
         ; The event should *always* be `:object-key` at the start of the loop.
         (unless (eq event :object-key)
@@ -51,17 +51,22 @@
 
 (defun parse (strm)
   "
-    Parse an input stream into FSet collections.
-    "
-    (jzon:with-parser (parser strm)
-      (multiple-value-bind
-        (ev val)
-        (jzon:parse-next parser)
-      (parse-value parser ev val))))
+  Parse an input stream into FSet collections.
+  "
+  (jzon:with-parser (parser strm)
+                    (let ((value (multiple-value-bind
+                      (ev val)
+                      (jzon:parse-next parser)
+                      (parse-value parser ev val))))
+                    (let ((ev (jzon:parse-next parser)))
+                      (unless (null ev)
+                        (error "Unexpected event: ~A" ev)))
+                    value)))
+
 
 ; Write a stringifier like jzon's `stringify` except it takes FSet maps and
 ; seqs. Basically taken right out of jzon's documentation.
-(defun stringify (&key (strm t) (pretty nil))
+(defun stringify (thing &key (strm t) (pretty nil))
   (labels ((helper (thing)
              (etypecase thing
                (jzon:json-atom
@@ -75,5 +80,5 @@
                    (fset:do-map (k v thing)
                            (jzon:write-key* k)
                               (helper v)))))))
-      (jzon:with-writer* (:stream strm) (:pretty pretty)
+      (jzon:with-writer* (:stream strm :pretty pretty)
         (helper thing))))

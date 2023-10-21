@@ -16,7 +16,7 @@
   :description "Port of com.inuoe.jzon to use FSet collections."
   :in-order-to ((test-op (test-op #:skin.djha.jfon/tests))))
 
-(defsystem #:jfon/tests
+(defsystem #:skin.djha.jfon/tests
   :version "0.1.0"
   :author "Daniel Jay Haskin"
   :license "MIT"
