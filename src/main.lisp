@@ -1,6 +1,7 @@
 (in-package #:cl-user)
 (defpackage
-  #:skin.djha.jfon (:use #:cl)
+  #:skin.djha.jfon
+  (:use #:cl)
   (:documentation
     "
     JZON for FSets
@@ -9,34 +10,33 @@
     (:export
       parse
       stringify)
-    (:import-from
-      #:fset)
-    (:package-local-nicknames (#:jzon #:com.inuoe.jzon)))
+    (:import-from #:fset)
+    (:local-nicknames (#:jzon #:com.inuoe.jzon)))
 (in-package #:skin.djha.jfon)
 
 ; Write a parser like jzon's `parse` except it outputs FSet maps and seqs.
 (defun parse-value (parser event value)
-  (declare (type jzon:parser parser))
         (ecase event
           (:value value)
           (:begin-array (parse-array parser))
           (:begin-object (parse-object parser))))
 
 (defun parse-array (parser)
-  (declare (type jzon:parser parser))
   (loop with result = (fset:empty-seq)
-        for event and value
-        do (setf (values event value) = (jzon:parse-next parser)
+        and event
+        and value
+        do (setf (values event value) (jzon:parse-next parser))
         while (not (eq event :end-array))
         do
         (fset:adjoinf result (parse-value parser event value))
         finally
-        (return result))))
+        (return result)))
 
 (defun parse-object (parser)
-  (declare (type jzon:parser parser))
+  ;(declare (type jzon:parser parser))
   (loop with result = (fset:empty-seq)
-        for event and value
+        and event
+        and value
         do (setf (values event value) (jzon:parse-next parser))
         while (not (eq event :end-array))
         do
@@ -68,12 +68,12 @@
                  (jzon:write-value* thing))
                (fset:seq
                  (jzon:with-array*
-                   (map nil #'recurse thing)))
+                   (fset:do-seq (v thing)
+                           (helper v))))
                (fset:map
                  (jzon:with-object*
-                   (maphash (lambda (k v)
-                              (jzon:write-key* k)
-                              (helper v))
-                            thing))))))
+                   (fset:do-map (k v thing)
+                           (jzon:write-key* k)
+                              (helper v)))))))
       (jzon:with-writer* (:stream strm) (:pretty pretty)
         (helper thing))))
