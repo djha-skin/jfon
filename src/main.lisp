@@ -32,9 +32,11 @@
         finally
         (return result)))
 
-(defun parse-object (parser)
+(defun parse-object (parser &key capture-order)
   ;(declare (type jzon:parser parser))
-  (loop with result = (fset:empty-map)
+  (loop with result = (if capture-order
+                          (fset:empty-map)
+                          (fset:empty-replay-map))
         and event
         and value
         do (setf (values event value) (jzon:parse-next parser))
