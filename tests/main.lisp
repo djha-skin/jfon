@@ -44,6 +44,7 @@
   (testing "more general case"
            (ok (fset:equal?
                    (with-input-from-string
+
                      (strm
                        "
                        {
@@ -76,7 +77,7 @@
                          ]
                        }
                        ")
-                     (jfon:parse strm))
+                     (jfon:parse strm :capture-order t))
 
                      #{|
                      ("poem" "His eye is on the sparrow")

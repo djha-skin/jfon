@@ -15,11 +15,12 @@
 (in-package #:skin.djha.jfon)
 
 ; Write a parser like jzon's `parse` except it outputs FSet maps and seqs.
-(defun parse-value (parser event value)
+(defun parse-value (parser event value &key capture-order)
         (ecase event
           (:value value)
           (:begin-array (parse-array parser))
-          (:begin-object (parse-object parser))))
+          (:begin-object (parse-object parser
+                                       :capture-order capture-order))))
 
 (defun parse-array (parser)
   (loop with result = (fset:empty-seq)
@@ -51,7 +52,7 @@
         finally
         (return result)))
 
-(defun parse (strm)
+(defun parse (strm &key capture-order)
   "
   Parse an input stream into FSet collections.
   "
@@ -59,7 +60,8 @@
                     (let ((value (multiple-value-bind
                       (ev val)
                       (jzon:parse-next parser)
-                      (parse-value parser ev val))))
+                      (parse-value parser ev val
+                                   :capture-order capture-order))))
                     (let ((ev (jzon:parse-next parser)))
                       (unless (null ev)
                         (error "Unexpected event: ~A" ev)))
